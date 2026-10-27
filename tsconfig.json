@@ -8,6 +8,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "composite": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   }
 }

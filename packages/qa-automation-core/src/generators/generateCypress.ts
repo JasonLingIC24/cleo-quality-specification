@@ -9,29 +9,66 @@ export function generateCypress(
   const lines: string[] = [];
 
   lines.push(
-    `describe("${specification.summary}", () => {`,
-    ""
+    `describe(`,
+    `  "Feature: ${specification.summary}",`,
+    `  () => {`,
+    "",
   );
 
   specification.scenarios.forEach(
-    scenario => {
+    (scenario) => {
+
+      const given =
+        scenario.given[0] ??
+        "the system is in a valid state";
+
+      const when =
+        scenario.when[0] ??
+        "an action is performed";
 
       lines.push(
-        `  it("${scenario.id} ${scenario.title}", () => {`,
+        `    describe(`,
+        `      "GIVEN ${given}",`,
+        `      () => {`,
         "",
-        "    // Given",
+        `        context(`,
+        `          "WHEN ${when}",`,
+        `          () => {`,
         "",
-        "    // When",
+      );
+
+      scenario.then.forEach(
+        (thenStep) => {
+
+          lines.push(
+            `            it(`,
+            `              "THEN ${thenStep}",`,
+            `              () => {`,
+            "",
+            `                // TODO: Implement test`,
+            "",
+            `              },`,
+            `            );`,
+            "",
+          );
+        },
+      );
+
+      lines.push(
+        `          },`,
+        `        );`,
         "",
-        "    // Then",
+        `      },`,
+        `    );`,
         "",
-        "  });",
-        ""
       );
     },
   );
 
-  lines.push("});");
+  lines.push(
+    `  },`,
+    `);`,
+  );
 
   return lines.join("\n");
 }

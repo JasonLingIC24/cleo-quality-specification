@@ -1,41 +1,75 @@
+#!/usr/bin/env node
+
+import fs from "fs";
+
+import { Command } from "commander";
+
 import {
+  parseManualQaTicket,
   generateFeature,
-  generateSpreadsheet,
+  generateSpreadsheetCsv,
   generateCypress,
-} from "../../../packages/qa-automation-core/dist/index.js";
+  writeFeature,
+  writeCsv,
+  writeCypress,
+} from "../../../packages/qa-automation-core/src/index.js";
 
-import {
-  loginSpecification,
-} from "../../../packages/test-specification/dist/examples/loginSpecification.js";
+const program = new Command();
 
-console.log("=================================");
-console.log("FEATURE");
-console.log("=================================");
+program
+  .name("qa-automation")
+  .description("QA Automation Platform");
 
-console.log(
-  generateFeature(loginSpecification),
-);
+program
+  .command("generate")
+  .argument("<file>", "Manual QA ticket JSON")
+  .action((filePath) => {
 
-console.log();
+    const raw =
+      fs.readFileSync(
+        filePath,
+        "utf8",
+      );
 
-console.log("=================================");
-console.log("SPREADSHEET");
-console.log("=================================");
+    const ticket =
+      JSON.parse(raw);
 
-console.log(
-  JSON.stringify(
-    generateSpreadsheet(loginSpecification),
-    null,
-    2,
-  ),
-);
+    const specification =
+      parseManualQaTicket(
+        ticket,
+      );
 
-console.log();
+    const outputDir = "output";
 
-console.log("=================================");
-console.log("CYPRESS");
-console.log("=================================");
+    writeFeature(
+      outputDir,
+      `${specification.jiraKey}.feature`,
+      generateFeature(specification),
+    );
 
-console.log(
-  generateCypress(loginSpecification),
-);
+    writeCsv(
+      outputDir,
+      `${specification.jiraKey}.csv`,
+      generateSpreadsheetCsv(
+        specification,
+      ),
+    );
+
+    writeCypress(
+      outputDir,
+      `${specification.jiraKey}.cy.ts`,
+      generateCypress(
+        specification,
+      ),
+    );
+
+    console.log(
+      `✅ Generated artefacts for ${specification.jiraKey}`,
+    );
+
+    console.log(
+      `📂 Output: ./${outputDir}`,
+    );
+  });
+
+program.parse();
