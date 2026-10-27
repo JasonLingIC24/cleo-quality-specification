@@ -1,5 +1,5 @@
 {
-  "name": "@qa-automation/feature-generator",
+  "name": "@qa-automation/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",

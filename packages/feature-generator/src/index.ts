@@ -1,1 +1,0 @@
-export * from "../../qa-automation-core/src/generators/generateFeature.js";
