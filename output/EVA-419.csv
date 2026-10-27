@@ -1,3 +1,3 @@
-TestCaseId,JiraKey,Scenario,Category,Status
-,EVA-419,"Valid login",,
-,EVA-419,"Invalid login",,
+"Jira Key","Scenario Title","Given","When","Then"
+"EVA-419","","Valid login","I am on the login page","I enter valid credentials","I am logged in successfully | I see the dashboard"
+"EVA-419","","Invalid login","I am on the login page","I enter invalid credentials","I see an authentication error | I remain on the login page"

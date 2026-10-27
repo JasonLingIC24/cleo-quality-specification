@@ -6,6 +6,13 @@ export function parseJiraStory(story: JiraStory): TestSpecification {
   return {
     schemaVersion: TEST_SPECIFICATION_VERSION,
 
+    metadata: {
+      generator: "qa-automation",
+      generatorVersion: "0.1.0",
+      generatedAt: new Date().toISOString(),
+      sourceType: "jira-story",
+    },
+
     jiraKey: story.key,
 
     summary: story.summary,
