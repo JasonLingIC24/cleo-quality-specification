@@ -1,0 +1,15 @@
+{
+  "name": "qa-automation",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
