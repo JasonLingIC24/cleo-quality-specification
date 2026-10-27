@@ -1,0 +1,1 @@
+export const TEST_SPECIFICATION_VERSION = "1.0.0";

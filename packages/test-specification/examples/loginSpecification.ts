@@ -1,14 +1,16 @@
-import type { TestSpecification } from "../src/index.js";
+import { TestSpecification, TEST_SPECIFICATION_VERSION } from "../src/index.js";
 
 export const loginSpecification: TestSpecification = {
+  schemaVersion: TEST_SPECIFICATION_VERSION,
+
   jiraKey: "EVA-418",
 
-  summary: "User can login with valid credentials",
+  summary: "Login functionality",
 
   acceptanceCriteria: [
     {
       id: "AC-1",
-      text: "The user can login using valid credentials",
+      text: "User can login using valid credentials",
     },
   ],
 

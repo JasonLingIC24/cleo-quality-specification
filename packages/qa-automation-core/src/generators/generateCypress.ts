@@ -1,4 +1,7 @@
-import type { TestSpecification } from "@qa-automation/test-specification";
+import type {
+  TestSpecification,
+  Scenario,
+} from "@qa-automation/test-specification";
 
 interface ScenarioDefinition {
   title: string;
@@ -23,8 +26,8 @@ export function generateCypress(specification: TestSpecification): string {
   /*
    * Build hierarchy:
    *
-   * Given
-   *   └── When
+   * GIVEN
+   *   └── WHEN
    *         └── Scenario
    */
   for (const scenario of specification.scenarios) {
@@ -71,6 +74,12 @@ export function generateCypress(specification: TestSpecification): string {
       `      "GIVEN ${givenGroup.given}",`,
       "      () => {",
       "",
+      "        before(() => {",
+      "",
+      "          // TODO: Create test data",
+      "",
+      "        });",
+      "",
     );
 
     for (const whenGroup of givenGroup.whenGroups) {
@@ -79,6 +88,12 @@ export function generateCypress(specification: TestSpecification): string {
         `          "WHEN ${whenGroup.when}",`,
         "          () => {",
         "",
+        "            beforeEach(() => {",
+        "",
+        "              // TODO: Navigate to page",
+        "",
+        "            });",
+        "",
       );
 
       for (const scenario of whenGroup.scenarios) {
@@ -86,7 +101,21 @@ export function generateCypress(specification: TestSpecification): string {
           "",
           "            /**",
           `             * Jira Ticket: ${specification.jiraKey}`,
+        );
+
+        if (specification.parentStoryKey) {
+          lines.push(
+            `             * Parent Story: ${specification.parentStoryKey}`,
+          );
+        }
+
+        lines.push(
           `             * Scenario: ${scenario.title}`,
+          "             *",
+          "             * TODO:",
+          "             * - Create page objects",
+          "             * - Implement actions",
+          "             * - Implement assertions",
           "             */",
         );
 
@@ -102,7 +131,17 @@ export function generateCypress(specification: TestSpecification): string {
             `              "${keyword} ${thenStep}",`,
             "              () => {",
             "",
-            "                // TODO: Implement test",
+            "                // Arrange",
+            "",
+            "                // TODO: Setup test data",
+            "",
+            "                // Act",
+            "",
+            "                // TODO: Perform action",
+            "",
+            "                // Assert",
+            "",
+            "                // TODO: Verify expected outcome",
             "",
             "              },",
             "            );",
