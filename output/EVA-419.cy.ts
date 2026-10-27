@@ -1,23 +1,73 @@
-describe("Login functionality", () => {
+describe(
+  "Feature: Login functionality",
+  () => {
 
-  it("TC-001 Login using valid credentials", () => {
+    describe(
+      "GIVEN I am on the login page",
+      () => {
 
-    // Given
+        context(
+          "WHEN I enter valid credentials",
+          () => {
 
-    // When
 
-    // Then
+            /**
+             * Jira Ticket: EVA-419
+             * Scenario: Valid login
+             */
+            it(
+              "THEN I am logged in successfully",
+              () => {
 
-  });
+                // TODO: Implement test
 
-  it("TC-002 Login using invalid credentials", () => {
+              },
+            );
 
-    // Given
+            it(
+              "AND I see the dashboard",
+              () => {
 
-    // When
+                // TODO: Implement test
 
-    // Then
+              },
+            );
 
-  });
+          },
+        );
 
-});
+        context(
+          "WHEN I enter invalid credentials",
+          () => {
+
+
+            /**
+             * Jira Ticket: EVA-419
+             * Scenario: Invalid login
+             */
+            it(
+              "THEN I see an authentication error",
+              () => {
+
+                // TODO: Implement test
+
+              },
+            );
+
+            it(
+              "AND I remain on the login page",
+              () => {
+
+                // TODO: Implement test
+
+              },
+            );
+
+          },
+        );
+
+      },
+    );
+
+  },
+);

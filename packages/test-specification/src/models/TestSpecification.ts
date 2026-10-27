@@ -4,6 +4,8 @@ import { Scenario } from "./Scenario.js";
 export interface TestSpecification {
   jiraKey: string;
 
+  parentStoryKey?: string;
+
   summary: string;
 
   objective?: string;

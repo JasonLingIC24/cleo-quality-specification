@@ -9,7 +9,7 @@ export interface ManualQaTicket {
 
   objective?: string;
 
-  acceptanceCriteria: string[];
+  acceptanceCriteria?: string[];
 
   assumptions?: string[];
 

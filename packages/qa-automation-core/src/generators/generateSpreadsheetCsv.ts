@@ -1,30 +1,22 @@
-import type {
-  TestSpecification,
-} from "@qa-automation/test-specification";
+import type { TestSpecification } from "@qa-automation/test-specification";
 
 export function generateSpreadsheetCsv(
   specification: TestSpecification,
 ): string {
+  const rows: string[][] = [
+    ["Jira Key", "Scenario Title", "Given", "When", "Then"],
+  ];
 
-  const rows: string[] = [];
+  for (const scenario of specification.scenarios) {
+    rows.push([
+      specification.jiraKey,
+      scenario.id ?? "",
+      scenario.title,
+      scenario.given.join(" | "),
+      scenario.when.join(" | "),
+      scenario.then.join(" | "),
+    ]);
+  }
 
-  rows.push(
-    "TestCaseId,JiraKey,Scenario,Category,Status",
-  );
-
-  specification.scenarios.forEach(
-    (scenario) => {
-      rows.push(
-        [
-          scenario.id,
-          specification.jiraKey,
-          `"${scenario.title}"`,
-          scenario.category,
-          scenario.automationStatus,
-        ].join(","),
-      );
-    },
-  );
-
-  return rows.join("\n");
+  return rows.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
 }
