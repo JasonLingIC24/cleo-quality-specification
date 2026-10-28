@@ -12,9 +12,9 @@ export function generateSpreadsheetCsv(
       specification.jiraKey,
       scenario.id ?? "",
       scenario.title,
-      scenario.given.join(" | "),
-      scenario.when.join(" | "),
-      scenario.then.join(" | "),
+      scenario.preconditions.join(" | "),
+      scenario.actions.join(" | "),
+      scenario.expectedResults.join(" | "),
     ]);
   }
 

@@ -1,11 +1,15 @@
-import { ScenarioCategory } from "./ScenarioCategory.js";
-
 export interface Scenario {
-  id?: string;
+  id: string;
 
   title: string;
 
-  given: string[];
-  when: string[];
-  then: string[];
+  status?: "PASS" | "FAIL";
+
+  preconditions: string[];
+
+  actions: string[];
+
+  expectedResults: string[];
+
+  examples?: string[];
 }

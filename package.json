@@ -10,7 +10,8 @@
     "build": "npm run build --workspaces",
     "generate": "tsx apps/qa-automation-cli/src/main.ts generate",
     "validate": "tsx apps/qa-automation-cli/src/main.ts validate",
-    "generate-spec": "tsx apps/qa-automation-cli/src/main.ts generate-spec"
+    "generate-spec": "tsx apps/qa-automation-cli/src/main.ts generate-spec",
+    "jira": "tsx apps/qa-automation-cli/src/main.ts jira"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
@@ -18,7 +19,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "commander": "^15.0.0"
+    "commander": "^15.0.0",
+    "exceljs": "^4.4.0"
   }
 }
-

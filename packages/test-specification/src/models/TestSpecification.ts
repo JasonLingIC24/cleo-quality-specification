@@ -13,6 +13,8 @@ export interface TestSpecification {
 
   summary: string;
 
+  background?: string[];
+
   objective?: string;
 
   acceptanceCriteria: AcceptanceCriterion[];

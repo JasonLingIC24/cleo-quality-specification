@@ -9,6 +9,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@qa-automation/test-specification": "workspace:*"
+    "@qa-automation/test-specification": "0.1.0"
   }
 }

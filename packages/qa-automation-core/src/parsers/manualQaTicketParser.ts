@@ -30,10 +30,16 @@ export function parseManualQaTicket(ticket: ManualQaTicket): TestSpecification {
 
     scenarios: (ticket.scenarios ?? []).map((scenario) => ({
       id: scenario.id,
+
       title: scenario.title,
-      given: scenario.given ?? [],
-      when: scenario.when ?? [],
-      then: scenario.then ?? [],
+
+      preconditions: scenario.given ?? [],
+
+      actions: scenario.when ?? [],
+
+      expectedResults: scenario.then ?? [],
+
+      examples: [],
     })),
   };
 }

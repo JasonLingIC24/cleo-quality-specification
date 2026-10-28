@@ -1,63 +1,67 @@
-import type {
-  TestSpecification,
-  Scenario,
-} from "@qa-automation/test-specification";
+import type { TestSpecification } from "@qa-automation/test-specification";
 
 interface ScenarioDefinition {
   title: string;
-  then: string[];
+  status?: "PASS" | "FAIL";
+  expectedResults: string[];
+  examples?: string[];
 }
 
-interface WhenGroup {
-  when: string;
+interface ActionGroup {
+  action: string;
   scenarios: ScenarioDefinition[];
 }
 
-interface GivenGroup {
-  given: string;
-  whenGroups: WhenGroup[];
+interface PreconditionsGroup {
+  precondition: string;
+  actionGroups: ActionGroup[];
 }
 
 export function generateCypress(specification: TestSpecification): string {
   const lines: string[] = [];
 
-  const givenGroups = new Map<string, GivenGroup>();
+  const preconditionGroups = new Map<string, PreconditionsGroup>();
 
   /*
    * Build hierarchy:
    *
-   * GIVEN
-   *   └── WHEN
-   *         └── Scenario
+   * PRECONDITION
+   *   └── ACTION
+   *         └── SCENARIO
    */
   for (const scenario of specification.scenarios) {
-    const given = scenario.given[0] ?? "the system is in a valid state";
+    const precondition =
+      scenario.preconditions[0] ?? "the system is in a valid state";
 
-    const when = scenario.when[0] ?? "an action is performed";
+    const action = scenario.actions[0] ?? "an action is performed";
 
-    if (!givenGroups.has(given)) {
-      givenGroups.set(given, {
-        given,
-        whenGroups: [],
+    if (!preconditionGroups.has(precondition)) {
+      preconditionGroups.set(precondition, {
+        precondition,
+        actionGroups: [],
       });
     }
 
-    const givenGroup = givenGroups.get(given)!;
+    const preconditionGroup = preconditionGroups.get(precondition)!;
 
-    let whenGroup = givenGroup.whenGroups.find((w) => w.when === when);
+    let actionGroup = preconditionGroup.actionGroups.find(
+      (group) => group.action === action,
+    );
 
-    if (!whenGroup) {
-      whenGroup = {
-        when,
+    if (!actionGroup) {
+      actionGroup = {
+        action,
         scenarios: [],
       };
 
-      givenGroup.whenGroups.push(whenGroup);
+      preconditionGroup.actionGroups.push(actionGroup);
     }
 
-    whenGroup.scenarios.push({
+    actionGroup.scenarios.push({
       title: scenario.title,
-      then: scenario.then,
+      status: scenario.status,
+      expectedResults: scenario.expectedResults,
+      examples: scenario.examples,
     });
   }
 
@@ -68,10 +72,10 @@ export function generateCypress(specification: TestSpecification): string {
     "",
   );
 
-  for (const givenGroup of givenGroups.values()) {
+  for (const preconditionGroup of preconditionGroups.values()) {
     lines.push(
       "    describe(",
-      `      "GIVEN ${givenGroup.given}",`,
+      `      "PRECONDITION ${preconditionGroup.precondition}",`,
       "      () => {",
       "",
       "        before(() => {",
@@ -82,10 +86,10 @@ export function generateCypress(specification: TestSpecification): string {
       "",
     );
 
-    for (const whenGroup of givenGroup.whenGroups) {
+    for (const actionGroup of preconditionGroup.actionGroups) {
       lines.push(
         "        context(",
-        `          "WHEN ${whenGroup.when}",`,
+        `          "ACTION ${actionGroup.action}",`,
         "          () => {",
         "",
         "            beforeEach(() => {",
@@ -96,7 +100,7 @@ export function generateCypress(specification: TestSpecification): string {
         "",
       );
 
-      for (const scenario of whenGroup.scenarios) {
+      for (const scenario of actionGroup.scenarios) {
         lines.push(
           "",
           "            /**",
@@ -111,6 +115,16 @@ export function generateCypress(specification: TestSpecification): string {
 
         lines.push(
           `             * Scenario: ${scenario.title}`,
+          `             * Status: ${scenario.status ?? "UNKNOWN"}`,
+        );
+
+        if (scenario.examples && scenario.examples.length > 0) {
+          lines.push(
+            `             * Examples: ${scenario.examples.join(", ")}`,
+          );
+        }
+
+        lines.push(
           "             *",
           "             * TODO:",
           "             * - Create page objects",
@@ -121,14 +135,14 @@ export function generateCypress(specification: TestSpecification): string {
 
         let firstAssertion = true;
 
-        for (const thenStep of scenario.then) {
+        for (const expectedResult of scenario.expectedResults) {
           const keyword = firstAssertion ? "THEN" : "AND";
 
           firstAssertion = false;
 
           lines.push(
             "            it(",
-            `              "${keyword} ${thenStep}",`,
+            `              "${keyword} ${expectedResult}",`,
             "              () => {",
             "",
             "                // Arrange",

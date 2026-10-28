@@ -27,11 +27,11 @@ export const loginSpecification: TestSpecification = {
 
       title: "Login using valid credentials",
 
-      given: ["I am on the login page"],
+      preconditions: ["I am on the login page"],
 
-      when: ["I enter valid credentials"],
+      actions: ["I enter valid credentials"],
 
-      then: ["I am logged in successfully"],
+      expectedResults: ["I am logged in successfully"],
     },
   ],
 };
