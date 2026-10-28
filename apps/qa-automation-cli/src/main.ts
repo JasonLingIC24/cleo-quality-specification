@@ -8,6 +8,8 @@ import {
   generateFeature,
   generateSpreadsheetCsv,
   generateCypress,
+  generateWorkbook,
+  writeWorkbook,
   writeFeature,
   writeCsv,
   writeCypress,
@@ -16,8 +18,6 @@ import {
   JiraClient,
   parseJiraIssue,
 } from "@qa-automation/core";
-import { adfToText } from "@qa-automation/core";
-import { parseGherkinText } from "@qa-automation/core";
 
 const program = new Command();
 
@@ -163,6 +163,14 @@ program
       outputDir,
       `${specification.jiraKey}.specification.json`,
       specification,
+    );
+
+    const workbook = await generateWorkbook(specification);
+
+    await writeWorkbook(
+      outputDir,
+      `${specification.jiraKey}-manual-tests.xlsx`,
+      workbook,
     );
 
     console.log(`✅ Generated artefacts for ${specification.jiraKey}`);
