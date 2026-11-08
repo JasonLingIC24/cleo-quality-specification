@@ -2,68 +2,74 @@ import type { TestSpecification } from "@qa-automation/test-specification";
 
 interface ScenarioDefinition {
   title: string;
-  status?: "PASS" | "FAIL";
+  requirementId?: string;
   expectedResults: string[];
   examples?: string[];
 }
 
-interface ActionGroup {
-  action: string;
+interface WhenGroup {
+  when: string;
   scenarios: ScenarioDefinition[];
 }
 
-interface PreconditionsGroup {
-  precondition: string;
-  actionGroups: ActionGroup[];
+interface GivenGroup {
+  given: string;
+  whenGroups: WhenGroup[];
 }
 
 export function generateCypress(specification: TestSpecification): string {
   const lines: string[] = [];
 
-  const preconditionGroups = new Map<string, PreconditionsGroup>();
+  const givenGroups = new Map<string, GivenGroup>();
 
   /*
-   * Build hierarchy:
+   * ============================================================
+   * BUILD HIERARCHY
    *
-   * PRECONDITION
-   *   └── ACTION
+   * GIVEN
+   *   └── WHEN
    *         └── SCENARIO
+   * ============================================================
    */
+
   for (const scenario of specification.scenarios) {
-    const precondition =
-      scenario.preconditions[0] ?? "the system is in a valid state";
+    const given = scenario.preconditions[0] ?? "the system is in a valid state";
 
-    const action = scenario.actions[0] ?? "an action is performed";
+    const when = scenario.actions[0] ?? "an action is performed";
 
-    if (!preconditionGroups.has(precondition)) {
-      preconditionGroups.set(precondition, {
-        precondition,
-        actionGroups: [],
+    if (!givenGroups.has(given)) {
+      givenGroups.set(given, {
+        given,
+        whenGroups: [],
       });
     }
 
-    const preconditionGroup = preconditionGroups.get(precondition)!;
+    const givenGroup = givenGroups.get(given)!;
 
-    let actionGroup = preconditionGroup.actionGroups.find(
-      (group) => group.action === action,
-    );
+    let whenGroup = givenGroup.whenGroups.find((group) => group.when === when);
 
-    if (!actionGroup) {
-      actionGroup = {
-        action,
+    if (!whenGroup) {
+      whenGroup = {
+        when,
         scenarios: [],
       };
 
-      preconditionGroup.actionGroups.push(actionGroup);
+      givenGroup.whenGroups.push(whenGroup);
     }
 
-    actionGroup.scenarios.push({
+    whenGroup.scenarios.push({
       title: scenario.title,
-      status: scenario.status,
+      requirementId: scenario.requirementId,
       expectedResults: scenario.expectedResults,
       examples: scenario.examples,
     });
   }
+
+  /*
+   * ============================================================
+   * FILE HEADER
+   * ============================================================
+   */
 
   lines.push(
     "describe(",
@@ -72,10 +78,16 @@ export function generateCypress(specification: TestSpecification): string {
     "",
   );
 
-  for (const preconditionGroup of preconditionGroups.values()) {
+  /*
+   * ============================================================
+   * GIVEN GROUPS
+   * ============================================================
+   */
+
+  for (const givenGroup of givenGroups.values()) {
     lines.push(
       "    describe(",
-      `      "PRECONDITION ${preconditionGroup.precondition}",`,
+      `      "GIVEN ${givenGroup.given}",`,
       "      () => {",
       "",
       "        before(() => {",
@@ -86,10 +98,16 @@ export function generateCypress(specification: TestSpecification): string {
       "",
     );
 
-    for (const actionGroup of preconditionGroup.actionGroups) {
+    /*
+     * ============================================================
+     * WHEN GROUPS
+     * ============================================================
+     */
+
+    for (const whenGroup of givenGroup.whenGroups) {
       lines.push(
         "        context(",
-        `          "ACTION ${actionGroup.action}",`,
+        `          "WHEN ${whenGroup.when}",`,
         "          () => {",
         "",
         "            beforeEach(() => {",
@@ -100,22 +118,18 @@ export function generateCypress(specification: TestSpecification): string {
         "",
       );
 
-      for (const scenario of actionGroup.scenarios) {
+      /*
+       * ============================================================
+       * SCENARIOS
+       * ============================================================
+       */
+
+      for (const scenario of whenGroup.scenarios) {
         lines.push(
           "",
           "            /**",
-          `             * Jira Ticket: ${specification.jiraKey}`,
-        );
-
-        if (specification.parentStoryKey) {
-          lines.push(
-            `             * Parent Story: ${specification.parentStoryKey}`,
-          );
-        }
-
-        lines.push(
+          `             * Requirement: ${scenario.requirementId ?? specification.jiraKey}`,
           `             * Scenario: ${scenario.title}`,
-          `             * Status: ${scenario.status ?? "UNKNOWN"}`,
         );
 
         if (scenario.examples && scenario.examples.length > 0) {

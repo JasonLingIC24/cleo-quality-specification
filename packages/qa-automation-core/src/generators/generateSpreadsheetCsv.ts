@@ -12,9 +12,16 @@ export function generateSpreadsheetCsv(
       specification.jiraKey,
       scenario.id ?? "",
       scenario.title,
-      scenario.preconditions.join(" | "),
-      scenario.actions.join(" | "),
-      scenario.expectedResults.join(" | "),
+      scenario.preconditions
+        .map((step, index) => `${index === 0 ? "Given" : "And"} ${step}`)
+        .join("\n"),
+      scenario.actions
+        .map((step, index) => `${index === 0 ? "When" : "And"} ${step}`)
+        .join("\n"),
+
+      scenario.expectedResults
+        .map((step, index) => `${index === 0 ? "Then" : "And"} ${step}`)
+        .join("\n"),
     ]);
   }
 

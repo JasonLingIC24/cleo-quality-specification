@@ -5,9 +5,11 @@ import {
 import type { JiraIssue } from "../jira/JiraIssue.js";
 import { adfToText } from "./adfToText.js";
 import { parseGherkinText } from "./gherkinParser.js";
+import fs from "fs";
 
 export function parseJiraIssue(issue: JiraIssue): TestSpecification {
   const text = adfToText(issue.description);
+  fs.writeFileSync(`output/${issue.key}.raw.txt`, text);
 
   const parsed = parseGherkinText(text);
 
@@ -33,11 +35,11 @@ export function parseJiraIssue(issue: JiraIssue): TestSpecification {
     background: parsed.background,
 
     scenarios: parsed.scenarios.map((scenario, index) => ({
-      id: `SC-${index + 1}`,
+      id: `SC-${String(index + 1).padStart(3, "0")}`,
+
+      requirementId: issue.key,
 
       title: scenario.title,
-
-      status: scenario.status,
 
       preconditions: scenario.given,
 
@@ -46,6 +48,8 @@ export function parseJiraIssue(issue: JiraIssue): TestSpecification {
       expectedResults: scenario.then,
 
       examples: scenario.examples,
+
+      tags: [],
     })),
   };
 }

@@ -1,0 +1,558 @@
+{
+  "schemaVersion": "1.0.0",
+  "metadata": {
+    "generator": "qa-automation",
+    "generatorVersion": "0.1.0",
+    "generatedAt": "2026-11-08T15:21:32.504Z",
+    "sourceType": "jira-story"
+  },
+  "jiraKey": "EVA-2912",
+  "summary": "Exploratory testing of the creation and management of Services under a Contract - waiting on bug fixes to retest",
+  "acceptanceCriteria": [
+    {
+      "id": "AC-1",
+      "text": "Open the service creation form"
+    },
+    {
+      "id": "AC-2",
+      "text": "Verify available services in the Service dropdown"
+    },
+    {
+      "id": "AC-3",
+      "text": "Verify behavior when a service is not linked in Organisation Settings"
+    },
+    {
+      "id": "AC-4",
+      "text": "Verify available options in the Service Type dropdown"
+    },
+    {
+      "id": "AC-5",
+      "text": "Verify available locations in the Location dropdown"
+    },
+    {
+      "id": "AC-6",
+      "text": "Accept 10-digit numeric DOS Service ID"
+    },
+    {
+      "id": "AC-7",
+      "text": "Validate mandatory service fields"
+    },
+    {
+      "id": "AC-8",
+      "text": "Service opening/closing times can be selected or typed"
+    },
+    {
+      "id": "AC-9",
+      "text": "Service opening/closing dates can be selected or typed"
+    },
+    {
+      "id": "AC-10",
+      "text": "Prevent saving a service with an invalid date and time range"
+    },
+    {
+      "id": "AC-11",
+      "text": "Display saved service details in the service list"
+    },
+    {
+      "id": "AC-12",
+      "text": "Create a service with a present/future start date"
+    },
+    {
+      "id": "AC-13",
+      "text": "Automatically activate a future-dated service"
+    },
+    {
+      "id": "AC-14",
+      "text": "Display System One configuration fields"
+    },
+    {
+      "id": "AC-15",
+      "text": "Validate mandatory System One configuration fields"
+    },
+    {
+      "id": "AC-16",
+      "text": "Validate an invalid System One Endpoint URL"
+    },
+    {
+      "id": "AC-17",
+      "text": "Validate the Target ODS Code"
+    },
+    {
+      "id": "AC-18",
+      "text": "Validate the Max Attempts field"
+    },
+    {
+      "id": "AC-19",
+      "text": "Save a service with System One configuration disabled"
+    },
+    {
+      "id": "AC-20",
+      "text": "Verify saved System One configuration"
+    },
+    {
+      "id": "AC-21",
+      "text": "Discard unsaved service changes"
+    },
+    {
+      "id": "AC-22",
+      "text": "Cancel the service form"
+    },
+    {
+      "id": "AC-23",
+      "text": "Verify saved service details"
+    },
+    {
+      "id": "AC-24",
+      "text": "Edit permitted service fields"
+    },
+    {
+      "id": "AC-25",
+      "text": "Verify service association with the contract"
+    }
+  ],
+  "background": [
+    "I have the required permissions to create and manage services",
+    "an organisation exists with at least one contract"
+  ],
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "requirementId": "EVA-2912",
+      "title": "Open the service creation form",
+      "preconditions": [
+        "I am viewing an existing contract"
+      ],
+      "actions": [
+        "I click the \"Create Service\" button"
+      ],
+      "expectedResults": [
+        "the new service form is displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-002",
+      "requirementId": "EVA-2912",
+      "title": "Verify available services in the Service dropdown",
+      "preconditions": [
+        "an organisation has services linked in Organisation Settings",
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I open the \"Service\" dropdown"
+      ],
+      "expectedResults": [
+        "the services linked to the organisation should be displayed",
+        "I should be able to select an available service"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-003",
+      "requirementId": "EVA-2912",
+      "title": "Verify behavior when a service is not linked in Organisation Settings",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "a service is not linked to the organisation in Organisation Settings"
+      ],
+      "actions": [
+        "I open the \"Service\" dropdown"
+      ],
+      "expectedResults": [
+        "the unlinked service should not be available for selection",
+        "I should not be able to associate that service with the contract"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-004",
+      "requirementId": "EVA-2912",
+      "title": "Verify available options in the Service Type dropdown",
+      "preconditions": [
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I open the \"Service Type\" dropdown"
+      ],
+      "expectedResults": [
+        "the available service types should be displayed",
+        "I should be able to select an appropriate service type"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-005",
+      "requirementId": "EVA-2912",
+      "title": "Verify available locations in the Location dropdown",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "a valid location has been created in the Location tab"
+      ],
+      "actions": [
+        "I open the \"Location\" dropdown"
+      ],
+      "expectedResults": [
+        "the created location should be available for selection",
+        "I should be able to associate the selected location with the service"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-006",
+      "requirementId": "EVA-2912",
+      "title": "Accept 10-digit numeric DOS Service ID",
+      "preconditions": [
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I enter a valid 10-digit numeric value in the DOS Service ID field",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service should be saved successfully",
+        "the DOS Service ID should be displayed correctly when viewing the service"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-007",
+      "requirementId": "EVA-2912",
+      "title": "Validate mandatory service fields",
+      "preconditions": [
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I leave a mandatory service field empty",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service is not saved",
+        "validation identifies the fields requiring completion"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-008",
+      "requirementId": "EVA-2912",
+      "title": "Service opening/closing times can be selected or typed",
+      "preconditions": [
+        "I am editing service opening hours"
+      ],
+      "actions": [
+        "I set the <timeField> using the <method>"
+      ],
+      "expectedResults": [
+        "the value is accepted"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-009",
+      "requirementId": "EVA-2912",
+      "title": "Service opening/closing dates can be selected or typed",
+      "preconditions": [
+        "I am editing service opening dates"
+      ],
+      "actions": [
+        "I set the <dateField> using the <method>"
+      ],
+      "expectedResults": [
+        "the value is accepted"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-010",
+      "requirementId": "EVA-2912",
+      "title": "Prevent saving a service with an invalid date and time range",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "all mandatory fields contain valid values"
+      ],
+      "actions": [
+        "I enter an end date and time earlier than the start date and time",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service should not be saved",
+        "an appropriate validation message should be displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-011",
+      "requirementId": "EVA-2912",
+      "title": "Display saved service details in the service list",
+      "preconditions": [
+        "I have successfully created a service under a contract"
+      ],
+      "actions": [
+        "I view the service list"
+      ],
+      "expectedResults": [
+        "the Status should be displayed as Active, Inactive, or Expired as applicable",
+        "the Start Date should be displayed correctly",
+        "the End Date should be displayed correctly",
+        "the \"Configure SLA\" action should be available",
+        "the \"Archive\" action should be available",
+        "the \"Edit\" action should be available"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-012",
+      "requirementId": "EVA-2912",
+      "title": "Create a service with a present/future start date",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "all mandatory fields contain valid values"
+      ],
+      "actions": [
+        "I set the service start date and time to a present/future point",
+        "I enter a valid end date and time",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service should be saved successfully",
+        "the service status should be \"Inactive\" before its start date and time"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-013",
+      "requirementId": "EVA-2912",
+      "title": "Automatically activate a future-dated service",
+      "preconditions": [
+        "a service has been created with a future start date and time",
+        "the service status is \"Inactive\""
+      ],
+      "actions": [
+        "the configured start date and time is reached"
+      ],
+      "expectedResults": [
+        "the service status should automatically change to \"Active\"",
+        "the updated status should be displayed in the service list"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-014",
+      "requirementId": "EVA-2912",
+      "title": "Display System One configuration fields",
+      "preconditions": [
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I enable \"Enable System One Configuration\""
+      ],
+      "expectedResults": [
+        "the Endpoint URL, Target ODS Code , Max Attempts field should be displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-015",
+      "requirementId": "EVA-2912",
+      "title": "Validate mandatory System One configuration fields",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "all standard mandatory fields contain valid values",
+        "\"Enable System One Configuration\" is enabled"
+      ],
+      "actions": [
+        "I leave \"<field>\" empty",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service should not be saved",
+        "a validation message should indicate that \"<field>\" is require"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-016",
+      "requirementId": "EVA-2912",
+      "title": "Validate an invalid System One Endpoint URL",
+      "preconditions": [
+        "System One configuration is enabled",
+        "all other mandatory fields contain valid values"
+      ],
+      "actions": [
+        "I enter an invalid Endpoint URL",
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the invalid URL should be rejected",
+        "an appropriate validation message should be displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-017",
+      "requirementId": "EVA-2912",
+      "title": "Validate the Target ODS Code",
+      "preconditions": [
+        "System One configuration is enabled"
+      ],
+      "actions": [
+        "I enter \"<value>\" as the Target ODS Code"
+      ],
+      "expectedResults": [
+        "the value can accept alphanumeric characters"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-018",
+      "requirementId": "EVA-2912",
+      "title": "Validate the Max Attempts field",
+      "preconditions": [
+        "System One configuration is enabled"
+      ],
+      "actions": [
+        "I enter a non-numeric value in the Max Attempts field"
+      ],
+      "expectedResults": [
+        "the invalid input should be rejected and an appropriate validation message should be displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-019",
+      "requirementId": "EVA-2912",
+      "title": "Save a service with System One configuration disabled",
+      "preconditions": [
+        "I am creating a new service under a contract",
+        "all standard mandatory fields contain valid values",
+        "\"Enable System One Configuration\" is disabled"
+      ],
+      "actions": [
+        "I click \"Save\""
+      ],
+      "expectedResults": [
+        "the service should be saved successfully"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-020",
+      "requirementId": "EVA-2912",
+      "title": "Verify saved System One configuration",
+      "preconditions": [
+        "a service has been saved with System One configuration enabled"
+      ],
+      "actions": [
+        "I reopen the service for editing"
+      ],
+      "expectedResults": [
+        "the System One configuration toggle should reflect the saved state",
+        "the saved Endpoint URL, Target ODS Code and   Max Attempts value should be displayed"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-021",
+      "requirementId": "EVA-2912",
+      "title": "Discard unsaved service changes",
+      "preconditions": [
+        "I am creating a new service under a contract"
+      ],
+      "actions": [
+        "I enter service details",
+        "I click \"Discard Changes\""
+      ],
+      "expectedResults": [
+        "the unsaved changes are discarded"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-022",
+      "requirementId": "EVA-2912",
+      "title": "Cancel the service form",
+      "preconditions": [
+        "I am creating or editing a service under a contract"
+      ],
+      "actions": [
+        "“Cancel\" button is clicked"
+      ],
+      "expectedResults": [
+        "the service form closes without saving the entered details"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-023",
+      "requirementId": "EVA-2912",
+      "title": "Verify saved service details",
+      "preconditions": [
+        "a service has been saved under a contract"
+      ],
+      "actions": [
+        "I reopen or view the service"
+      ],
+      "expectedResults": [
+        "the selected service is displayed correctly"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-024",
+      "requirementId": "EVA-2912",
+      "title": "Edit permitted service fields",
+      "preconditions": [
+        "a service exists under a contract",
+        "I have permission to edit the service"
+      ],
+      "actions": [
+        "I open the service for editing",
+        "I update permitted service fields and save the changes"
+      ],
+      "expectedResults": [
+        "the changes are saved successfully",
+        "the updated details are displayed when I reopen the service"
+      ],
+      "examples": [],
+      "tags": []
+    },
+    {
+      "id": "SC-025",
+      "requirementId": "EVA-2912",
+      "title": "Verify service association with the contract",
+      "preconditions": [
+        "a service has been saved under a contract"
+      ],
+      "actions": [
+        "I view the services associated with that contract"
+      ],
+      "expectedResults": [
+        "the saved service appears under the correct contract"
+      ],
+      "examples": [],
+      "tags": []
+    }
+  ]
+}
