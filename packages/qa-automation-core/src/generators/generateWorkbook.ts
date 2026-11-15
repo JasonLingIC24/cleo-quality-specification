@@ -37,19 +37,19 @@ export async function generateWorkbook(
    * ============================================================
    */
 
-  const sheet = workbook.addWorksheet(specification.summary.substring(0, 31));
+  const sheet = workbook.addWorksheet(specification.jiraKey);
 
   sheet.columns = [
-    { width: 22 }, // Label
-    //{ width: 20 }, // Requirement
+    { width: 15 }, // Test Case ID
     { width: 40 }, // Scenario
-    { width: 50 }, // GIVEN
-    { width: 50 }, // WHEN
-    { width: 50 }, // THEN
-    { width: 25 }, // Test Data
+    { width: 45 }, // GIVEN
+    { width: 45 }, // WHEN
+    { width: 45 }, // THEN
+    { width: 20 }, // Test Data
     { width: 12 }, // Result
     { width: 12 }, // Environment
-    { width: 30 }, // Evidence
+    { width: 35 }, // Tester Notes
+    { width: 25 }, // Evidence
   ];
 
   /*
@@ -59,15 +59,19 @@ export async function generateWorkbook(
    */
 
   addMetadataRow(sheet, "Feature", specification.summary);
-
-  addMetadataRow(sheet, "Feature ID", specification.jiraKey);
-
-  addMetadataRow(sheet, "Parent Story", specification.parentStoryKey ?? "");
-
+  addMetadataRow(sheet, "Feature ID", {
+    text: specification.jiraKey,
+    hyperlink: `https://cleosystems.atlassian.net/browse/${specification.jiraKey}`,
+  });
+  addMetadataRow(sheet, "Domain", "");
+  addMetadataRow(sheet, "Tags", "");
+  addMetadataRow(sheet, "Product", "");
+  addMetadataRow(sheet, "Version", "");
+  addMetadataRow(sheet, "Environment", "");
   addMetadataRow(
     sheet,
     "Generated At",
-    new Date().toLocaleDateString("en-GB", {
+    new Date().toLocaleString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -76,26 +80,16 @@ export async function generateWorkbook(
     }),
   );
 
-  addMetadataRow(
-    sheet,
-    "Scenario Count",
-    String(specification.scenarios.length),
-  );
-
-  addMetadataRow(sheet, "Source", specification.metadata.sourceType);
-
-  addMetadataRow(
-    sheet,
-    "Generator Version",
-    specification.metadata.generatorVersion,
-  );
-
   if (specification.background && specification.background.length > 0) {
-    addMetadataRow(sheet, "Preconditions", specification.background.join("\n"));
+    addMetadataRow(
+      sheet,
+      "Preconditions",
+      specification.background.map((step) => `• ${step}`).join("\n"),
+    );
+    autoHeight(sheet.getRow(sheet.rowCount));
   }
 
   sheet.addRow([]);
-
   /*
    * ============================================================
    * HEADER
@@ -111,10 +105,22 @@ export async function generateWorkbook(
     "Test Data",
     "Result",
     "Environment",
+    "Test Notes",
     "Evidence",
   ]);
 
   styleHeaderRow(headerRow);
+
+  sheet.autoFilter = {
+    from: {
+      row: headerRow.number,
+      column: 1,
+    },
+    to: {
+      row: headerRow.number,
+      column: 10,
+    },
+  };
 
   sheet.views = [
     {
@@ -128,86 +134,48 @@ export async function generateWorkbook(
    * SCENARIOS
    * ============================================================
    */
-
   specification.scenarios.forEach((scenario) => {
-    const givenCell = {
-      richText: [
-        {
-          text: "GIVEN ",
-          font: {
-            bold: true,
+    const givenCell = buildRichSteps("GIVEN", scenario.preconditions);
+
+    const whenCell = buildRichSteps("WHEN", scenario.actions);
+
+    scenario.expectedResults.forEach((expectedResult, index) => {
+      const firstRow = index === 0;
+
+      const thenCell = {
+        richText: [
+          {
+            text: firstRow ? "THEN " : "AND ",
+            font: {
+              bold: true,
+            },
           },
-        },
-        {
-          text: cleanText(scenario.preconditions.join("\n")),
-        },
-      ],
-    };
-
-    const whenCell = {
-      richText: [
-        {
-          text: "WHEN ",
-          font: {
-            bold: true,
+          {
+            text: expectedResult,
           },
-        },
-        {
-          text: cleanText(scenario.actions.join("\n")),
-        },
-      ],
-    };
+        ],
+      };
 
-    const thenCell = {
-      richText: [
-        {
-          text: "THEN ",
-          font: {
-            bold: true,
-          },
-        },
-        {
-          text: cleanText(scenario.expectedResults.join("\n")),
-        },
-      ],
-    };
+      const row = sheet.addRow([
+        firstRow ? scenario.id : "",
+        firstRow ? scenario.title : "",
+        firstRow ? givenCell : "",
+        firstRow ? whenCell : "",
+        thenCell,
+        "",
+        "N/A",
+        "Manual",
+        "",
+        "",
+      ]);
 
-    const row = sheet.addRow([
-      scenario.id,
-      scenario.title,
-      givenCell,
-      whenCell,
-      thenCell,
-      "Test Data",
-      "N/A",
-      "Manual",
-      "",
-    ]);
+      styleScenarioRow(row);
+      applyExecutionDropdowns(row);
 
-    /*
-     * Test Case ID
-     */
+      autoHeight(row);
+    });
 
-    row.getCell(1).alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-
-    /*
-     * Scenario
-     */
-
-    row.getCell(2).font = {
-      bold: true,
-      size: 10,
-      name: "Nunito Sans",
-    };
-
-    styleScenarioRow(row);
-
-    applyExecutionDropdowns(row);
-
-    autoHeight(row);
+    addScenarioEndRow(sheet, "", "");
   });
 
   /*
@@ -216,7 +184,7 @@ export async function generateWorkbook(
    * ============================================================
    */
 
-  addExecutionSummarySheet(workbook);
+  addExecutionSummarySheet(workbook, specification);
 
   return workbook;
 }
@@ -227,140 +195,130 @@ export async function generateWorkbook(
  * ============================================================
  */
 
-function sheetRef(name: string) {
-  return `'${name.replace(/'/g, "''")}'`;
-}
+function addSummaryHeader(sheet: ExcelJS.Worksheet, title: string) {
+  const row = sheet.addRow([title]);
 
-function addExecutionSummarySheet(workbook: ExcelJS.Workbook) {
-  const sheet = workbook.addWorksheet("Execution Summary");
-
-  sheet.addRow(["Execution Summary"]);
-  sheet.getRow(1).font = { bold: true, size: 16 };
-
-  sheet.addRow([]);
-  sheet.addRow(["Metric", "Value"]);
-  const headerRow = sheet.getRow(3);
-
-  headerRow.eachCell((cell) => {
+  row.eachCell((cell) => {
     cell.font = {
       bold: true,
       size: 10,
       name: "Nunito Sans",
     };
 
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFD9E1F2" },
-    };
-
-    cell.border = {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" },
-    };
-
-    cell.alignment = {
-      vertical: "middle",
-      horizontal: "left",
-    };
+    cell.fill = solid("FFD9E1F2");
   });
-
-  headerRow.height = 30;
-
-  sheet.addRow(["Total Tests", { formula: "SUM(B8:B100)" }]);
-  sheet.addRow(["Passed", { formula: "SUM(C8:C100)" }]);
-  sheet.addRow(["Failed", { formula: "SUM(D8:D100)" }]);
-
-  const passRow = sheet.addRow(["Pass %", { formula: "IFERROR(C4/B4,0)" }]);
-
-  passRow.getCell(2).numFmt = "0.00%";
-  sheet.addRow([]);
-  sheet.addRow(["Feature", "Total Tests", "Passed", "Failed", "Pass %"]);
-
-  for (const ws of workbook.worksheets) {
-    if (ws.name === "Execution Summary" || ws.name === "_lists") continue;
-
-    const sheetName = sheetRef(ws.name);
-
-    const passFormula = `COUNTIF(${sheetName}!G:G,"Pass")`;
-    const failFormula = `COUNTIF(${sheetName}!G:G,"Fail")`;
-    const totalFormula = `${passFormula}+${failFormula}+COUNTIF(${sheetName}!G:G,"N/A")`;
-
-    const row = sheet.addRow([
-      ws.name,
-      { formula: totalFormula },
-      { formula: passFormula },
-      { formula: failFormula },
-      { formula: `IFERROR(${passFormula}/(${totalFormula}),0)` },
-    ]);
-    row.eachCell((cell) => {
-      cell.font = { name: "Nunito Sans", size: 10 };
-
-      cell.border = {
-        top: { style: "thin" },
-        bottom: { style: "thin" },
-        left: { style: "thin" },
-        right: { style: "thin" },
-      };
-
-      cell.alignment = {
-        vertical: "middle",
-        horizontal: "center",
-      };
-    });
-    row.getCell(3).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFDFF0D8" },
-    };
-    row.getCell(4).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFCE4D6" },
-    };
-
-    row.getCell(5).numFmt = "0.00%";
-    sheet.columns = [
-      { width: 30 }, // Feature
-      { width: 12 }, // Total Test
-      { width: 12 }, // Pass
-      { width: 12 }, // Fail
-      { width: 12 }, // Pass %
-    ];
-  }
 }
 
-function cleanText(input: string): string {
-  return (
-    (input || "")
+function addExecutionSummarySheet(
+  workbook: ExcelJS.Workbook,
+  specification: TestSpecification,
+) {
+  const sheet = workbook.addWorksheet("Execution Summary");
 
-      // ✅ remove wrapping quotes/backticks
-      .replace(/^["'`]+|["'`]+$/g, "")
+  sheet.columns = [{ width: 30 }, { width: 40 }];
 
-      // ✅ join concatenated strings: "foo" + "bar"
-      .replace(/["'`]\s*\+\s*["'`]/g, " ")
+  sheet.addRow(["Execution Summary"]);
 
-      // ✅ normalize multi-line template literals
-      .replace(/\n\s*/g, " ")
+  sheet.getRow(1).font = {
+    bold: true,
+    size: 16,
+    name: "Nunito Sans",
+  };
 
-      // ✅ fix template variables ${x} → {x}
-      .replace(/\$\{\$?\{?([\w\.]+)\}?/g, (_, v: string) => {
-        return `{${v.split(".").pop()}}`;
-      })
+  sheet.addRow([]);
 
-      // ✅ remove TC IDs like [PAT-XXX]
-      .replace(/\[[^\]]+\]\s*/, "")
+  addSummaryHeader(sheet, "Feature Information");
 
-      // ✅ clean broken quotes
-      .replace(/^"+|"+$/g, "")
+  sheet.addRow(["Feature", specification.summary]);
 
-      // ✅ collapse whitespace
-      .replace(/\s+/g, " ")
+  sheet.addRow(["Feature ID", specification.jiraKey]);
 
-      .trim()
-  );
+  sheet.addRow([
+    "Generated At",
+    new Date().toLocaleString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+  ]);
+
+  sheet.addRow([]);
+
+  addSummaryHeader(sheet, "Workbook Statistics");
+
+  sheet.addRow(["Scenario Count", specification.scenarios.length]);
+
+  sheet.addRow([
+    "Assertion Count",
+    specification.scenarios.reduce(
+      (total, scenario) => total + scenario.expectedResults.length,
+      0,
+    ),
+  ]);
+
+  sheet.addRow([]);
+
+  addSummaryHeader(sheet, "Execution Overview");
+
+  const featureSheetName = `'${specification.jiraKey}'`;
+
+  sheet.addRow([
+    "Pass",
+    {
+      formula: `COUNTIF(${featureSheetName}!G:G,"Pass")`,
+    },
+  ]);
+
+  sheet.addRow([
+    "Fail",
+    {
+      formula: `COUNTIF(${featureSheetName}!G:G,"Fail")`,
+    },
+  ]);
+
+  sheet.addRow([
+    "N/A",
+    {
+      formula: `COUNTIF(${featureSheetName}!G:G,"N/A")`,
+    },
+  ]);
+
+  const passPercentRow = sheet.addRow([
+    "Pass %",
+    {
+      formula:
+        `IFERROR(` +
+        `COUNTIF(${featureSheetName}!G:G,"Pass")/` +
+        `(` +
+        `COUNTIF(${featureSheetName}!G:G,"Pass")+` +
+        `COUNTIF(${featureSheetName}!G:G,"Fail")` +
+        `),` +
+        `0` +
+        `)`,
+    },
+  ]);
+
+  passPercentRow.getCell(2).numFmt = "0.00%";
+
+  sheet.addRow([]);
+
+  addSummaryHeader(sheet, "Automation Overview");
+
+  sheet.addRow([
+    "Manual",
+    {
+      formula: `COUNTIF(${featureSheetName}!H:H,"Manual")`,
+    },
+  ]);
+
+  sheet.addRow([
+    "Cypress",
+    {
+      formula: `COUNTIF(${featureSheetName}!H:H,"Cypress")`,
+    },
+  ]);
 }
 
 function styleHeaderRow(headerRow: ExcelJS.Row) {
@@ -395,130 +353,110 @@ function thinBorder(): Partial<ExcelJS.Borders> {
 function addMetadataRow(
   sheet: ExcelJS.Worksheet,
   label: string,
-  value: string,
+  value: string | ExcelJS.CellValue,
 ) {
   const row = sheet.addRow([label, value, ""]);
 
-  // ✅ merge B + C + D
+  // Merge B + C + D
   sheet.mergeCells(`B${row.number}:D${row.number}`);
 
-  // ✅ styling
-  row.getCell(1).font = { bold: true };
+  const colA = row.getCell(1);
+  colA.font = { name: "Nunito Sans", size: 10, bold: true };
 
-  // ✅ alignment for BOTH cells
-  row.getCell(1).alignment = {
+  // Alignment for BOTH cells
+  colA.alignment = {
     horizontal: "left",
     vertical: "middle",
   };
-  row.getCell(1).border = metadataBorder();
 
-  row.getCell(2).alignment = {
+  colA.border = metadataBorder();
+  colA.fill = solid("FFD9E1F2");
+
+  const colB = row.getCell(2);
+  if (typeof value === "object" && value !== null && "hyperlink" in value) {
+    colB.font = {
+      name: "Nunito Sans",
+      size: 10,
+      color: {
+        argb: "FF0563C1",
+      },
+      underline: true,
+    };
+  }
+
+  colB.alignment = {
     wrapText: true,
     horizontal: "left",
     vertical: "middle",
   };
+  colB.fill = solid("FFF2F2F2");
 
-  // ✅ background (optional but matches your style)
-  row.getCell(1).fill = solid("FFD9E1F2");
-  //row.getCell(2).fill = solid("FFD9E1F2");
-  row.getCell(2).fill = solid("FFF2F2F2");
+  const textValue = typeof value === "string" ? value : String(value ?? "");
 
-  // ✅ row height
-  //row.height = 20;
-  autoHeight(row);
+  const lineCount = textValue.split("\n").length;
+
+  row.height = Math.max(20, lineCount * 18);
+}
+
+function addScenarioEndRow(
+  sheet: ExcelJS.Worksheet,
+  label: string,
+  value: string,
+) {
+  const row = sheet.addRow([label, value, ""]);
+
+  [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((col) => {
+    row.getCell(col).fill = solid("FFBFBFBF");
+  });
+
+  row.height = 1.5;
 }
 
 function styleScenarioRow(row: ExcelJS.Row) {
-  [1].forEach((col) => {
-    row.getCell(col).alignment = {
-      vertical: "middle",
-      horizontal: "center",
-      wrapText: true,
-    };
-    row.getCell(col).font = { size: 10, name: "Nunito Sans", bold: true };
-    row.getCell(col).fill = solid("FFD9D9D9");
-  });
+  row.eachCell((cell, colNumber) => {
+    cell.font = { name: "Nunito Sans", size: 10 };
 
-  row.getCell(1).border = metadataBorder();
-
-  [2].forEach((col) => {
-    row.getCell(col).alignment = {
+    cell.alignment = {
       vertical: "top",
       horizontal: "left",
       wrapText: true,
     };
-    row.getCell(col).font = { size: 10, name: "Nunito Sans", bold: true };
-    row.getCell(col).fill = solid("FFD9D9D9");
+
+    switch (colNumber) {
+      case 1: // TestCase ID Column
+        cell.alignment = {
+          vertical: "top",
+          horizontal: "center",
+          wrapText: true,
+        };
+        cell.font.bold = true;
+        cell.border = metadataBorder();
+        cell.fill = solid("FFD9D9D9");
+        break;
+      case 2: // Scenario Column
+        cell.fill = solid("FFD9D9D9");
+        cell.alignment = {
+          vertical: "top",
+          horizontal: "left",
+          wrapText: true,
+          indent: 1,
+        };
+        break;
+      case 3: // GIVEN
+        cell.fill = solid("FFDEEAF6");
+        break;
+      case 4: // WHEN
+        cell.fill = solid("FFFFF2CC");
+        break;
+      case 5: // THEN / AND
+        if (!row.getCell(1).value) {
+          cell.fill = solid("FFEAF6E5");
+        } else {
+          cell.fill = solid("FFDFF0D8");
+        }
+        break;
+    }
   });
-
-  row.getCell(3).fill = solid("FFDEEAF6"); // GIVEN = blue
-  row.getCell(4).fill = solid("FFFFF2CC"); // WHEN = yellow
-  row.getCell(5).fill = solid("FFDFF0D8"); // THEN = green
-
-  [2, 3, 4, 5].forEach((col) => {
-    row.getCell(col).alignment = {
-      ...(row.getCell(col).alignment || {
-        vertical: "top",
-        horizontal: "left",
-        indent: 1,
-      }),
-      wrapText: true,
-    };
-    row.getCell(col).font = { size: 10, name: "Nunito Sans" };
-  });
-  // row.eachCell((cell) => {
-  //   cell.font = {
-  //     size: 10,
-  //     name: "Nunito Sans",
-  //   };
-
-  //   cell.alignment = {
-  //     vertical: "top",
-  //     wrapText: true,
-  //   };
-  // });
-
-  // /*
-  //  * Test Case ID
-  //  */
-
-  // row.getCell(1).fill = solid("FFD9D9D9");
-
-  // /*
-  //  * Requirement
-  //  */
-
-  // // row.getCell(2).fill = solid("FFD9D9D9");
-
-  // /*
-  //  * Scenario
-  //  */
-
-  // row.getCell(2).fill = solid("FFD9D9D9");
-
-  // /*
-  //  * GIVEN
-  //  */
-
-  // row.getCell(3).fill = solid("FFDEEAF6");
-
-  // /*
-  //  * WHEN
-  //  */
-
-  // row.getCell(4).fill = solid("FFFFF2CC");
-
-  // /*
-  //  * THEN
-  //  */
-
-  // row.getCell(5).fill = solid("FFDFF0D8");
-
-  // /*
-  //  * Examples
-  //  */
-
-  // row.getCell(6).fill = solid("FFF2F2F2");
 }
 
 function applyExecutionDropdowns(row: ExcelJS.Row) {
@@ -567,14 +505,35 @@ function applyExecutionDropdowns(row: ExcelJS.Row) {
   }
 }
 
-function autoHeight(row: ExcelJS.Row, baseWidth = 100) {
-  // tweak if needsed
-  // const approxCharsPerLine = colWidth * 1.2;
-  // row.height = maxLines * 15;
-  // EffectChangeTighter rows * 14
-  // More spacing * 16
-  // Earlier wrappingcolWidth * 1.0
+// function autoHeight(row: ExcelJS.Row) {
+//   let maxLines = 1;
 
+//   row.eachCell({ includeEmpty: true }, (cell) => {
+//     let text = "";
+
+//     if (typeof cell.value === "string") {
+//       text = cell.value;
+//     } else if (
+//       cell.value &&
+//       typeof cell.value === "object" &&
+//       "richText" in cell.value
+//     ) {
+//       text = cell.value.richText.map((r: any) => r.text).join("");
+//     }
+
+//     const width = row.worksheet.getColumn(cell.col).width ?? 20;
+
+//     const explicitLines = text.split("\n").length;
+
+//     const wrappedLines = Math.ceil(text.length / (width * 1.0));
+
+//     maxLines = Math.max(maxLines, explicitLines, wrappedLines);
+//   });
+
+//   row.height = Math.max(20, maxLines * 15);
+// }
+
+function autoHeight(row: ExcelJS.Row) {
   let maxLines = 1;
 
   row.eachCell({ includeEmpty: true }, (cell) => {
@@ -587,24 +546,27 @@ function autoHeight(row: ExcelJS.Row, baseWidth = 100) {
       typeof cell.value === "object" &&
       "richText" in cell.value
     ) {
-      text = cell.value.richText
-        .map((r: any) => r.text)
-        .join(" ")
-        .replace(/\n/g, " ");
+      text = cell.value.richText.map((r: any) => r.text).join("");
     }
 
-    // ✅ estimate wrapping (based on column width)
-    const colWidth = cell.col
-      ? row.worksheet.getColumn(cell.col).width || 20
-      : 20;
+    const columnWidth = row.worksheet.getColumn(cell.col).width ?? 20;
 
-    const approxCharsPerLine = colWidth * 1.0; // tuning factor
-    const lines = Math.ceil(text.length / approxCharsPerLine);
+    /*
+     * Explicit line breaks
+     */
 
-    maxLines = Math.max(maxLines, lines);
+    const explicitLines = text.split("\n").length + 1;
+
+    /*
+     * Excel wrapping approximation
+     */
+
+    const wrappedLines = Math.ceil(text.length / (columnWidth * 1.2));
+
+    maxLines = Math.max(maxLines, explicitLines, wrappedLines);
   });
 
-  row.height = Math.max(20, maxLines * 15); // 12px per line
+  row.height = Math.max(20, maxLines * 20);
 }
 
 function solid(argb: string): ExcelJS.FillPattern {
@@ -623,3 +585,85 @@ function metadataBorder(): Partial<ExcelJS.Borders> {
     },
   };
 }
+
+function buildRichSteps(
+  firstKeyword: string,
+  steps: string[],
+): ExcelJS.CellRichTextValue {
+  const richText: ExcelJS.RichText[] = [];
+
+  steps.forEach((step, index) => {
+    if (index > 0) {
+      richText.push({
+        text: "\n",
+      });
+
+      richText.push({
+        text: "    • ",
+      });
+    }
+
+    richText.push({
+      text: index === 0 ? `${firstKeyword} ` : "AND ",
+      font: {
+        bold: true,
+        name: "Nunito Sans",
+        size: 10,
+      },
+    });
+
+    richText.push({
+      text: step,
+      font: {
+        name: "Nunito Sans",
+        size: 10,
+      },
+    });
+  });
+
+  return {
+    richText,
+  };
+}
+
+// function buildRichSteps(firstKeyword: string, steps: string[]): string {
+//   return steps
+//     .map((step, index) =>
+//       index === 0 ? `${firstKeyword} ${step}` : `    • AND ${step}`,
+//     )
+//     .join("\n");
+// }
+
+// function buildRichSteps(
+//   firstKeyword: string,
+//   steps: string[],
+// ): ExcelJS.CellRichTextValue {
+//   const richText: ExcelJS.RichText[] = [];
+
+//   steps.forEach((step, index) => {
+//     if (index > 0) {
+//       richText.push({
+//         text: "\n ",
+//       });
+
+//       richText.push({
+//         text: "• ",
+//       });
+//     }
+
+//     richText.push({
+//       text: index === 0 ? `${firstKeyword} ` : "AND ",
+//       font: {
+//         bold: true,
+//       },
+//     });
+
+//     richText.push({
+//       text: step,
+//     });
+//   });
+
+//   return {
+//     richText,
+//   };
+// }

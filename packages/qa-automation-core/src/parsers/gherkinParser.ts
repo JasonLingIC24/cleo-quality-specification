@@ -87,10 +87,14 @@ export function parseGherkinText(text: string): ParsedGherkin {
       }
 
       /*
-       * Remove PASS / FAIL
+       * Remove PASS / FAIL markers
        */
 
-      scenarioTitle = scenarioTitle.replace(/\s+\((PASS|FAIL)\)$/i, "");
+      scenarioTitle = scenarioTitle
+        .replace(/\s*\((PASS|FAIL)\)/gi, "")
+        .replace(/\s*"(PASS|FAIL)"/gi, "")
+        .replace(/\s*'(PASS|FAIL)'/gi, "")
+        .trim();
 
       currentScenario = {
         title: scenarioTitle,
