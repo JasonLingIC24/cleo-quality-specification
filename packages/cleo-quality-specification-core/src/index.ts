@@ -7,7 +7,7 @@ export type {
   TestSpecification,
   Scenario,
   AcceptanceCriterion,
-} from "@qa-automation/test-specification";
+} from "@cleo-quality-specification/test-specification";
 
 export * from "./parsers/jiraParser.js";
 export * from "./parsers/manualQaTicketParser.js";

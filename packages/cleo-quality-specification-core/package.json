@@ -1,5 +1,5 @@
 {
-  "name": "@qa-automation/core",
+  "name": "@cleo-quality-specification/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@qa-automation/test-specification": "0.1.0"
+    "@cleo-quality-specification/test-specification": "0.1.0"
   }
 }

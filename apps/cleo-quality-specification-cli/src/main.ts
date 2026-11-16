@@ -1,67 +1,78 @@
 #!/usr/bin/env node
-//import "dotenv/config";
+// import "dotenv/config";
+
 import fs from "fs";
 import { Command } from "commander";
+import type { TestSpecification } from "@cleo-quality-specification/test-specification";
 
 import {
   parseManualQaTicket,
   generateFeature,
-  generateSpreadsheetCsv,
   generateCypress,
   generateWorkbook,
   writeWorkbook,
   writeFeature,
-  writeCsv,
   writeCypress,
   writeSpecification,
   validateManualQaTicket,
   JiraClient,
   parseJiraIssue,
-} from "@qa-automation/core";
+} from "@cleo-quality-specification/core";
 
 const program = new Command();
 
-program.name("qa-automation").description("QA Automation Platform");
+program.name("cleo-quality-specification");
+program.description("Cleo Quality Specification Platform");
+
+async function generateArtifacts(
+  specification: TestSpecification,
+  includeWorkbook = false,
+) {
+  const outputDir = "output";
+
+  writeFeature(
+    outputDir,
+    `${specification.jiraKey}.feature`,
+    generateFeature(specification),
+  );
+
+  writeCypress(
+    outputDir,
+    `${specification.jiraKey}.spec.ts`,
+    generateCypress(specification),
+  );
+
+  writeSpecification(
+    outputDir,
+    `${specification.jiraKey}.specification.json`,
+    specification,
+  );
+
+  if (includeWorkbook) {
+    const workbook = await generateWorkbook(specification);
+
+    await writeWorkbook(
+      outputDir,
+      `${specification.jiraKey}-manual-tests.xlsx`,
+      workbook,
+    );
+  }
+
+  console.log(`✅ Generated artefacts for ${specification.jiraKey}`);
+  console.log(`📂 Output: ./${outputDir}`);
+}
 
 program
   .command("generate")
   .argument("<file>", "Manual QA ticket JSON")
-  .action((filePath) => {
+  .action(async (filePath) => {
     const raw = fs.readFileSync(filePath, "utf8");
 
     const ticket = JSON.parse(raw);
 
     const specification = parseManualQaTicket(ticket);
 
-    const outputDir = "output";
-
-    writeFeature(
-      outputDir,
-      `${specification.jiraKey}.feature`,
-      generateFeature(specification),
-    );
-
-    writeCsv(
-      outputDir,
-      `${specification.jiraKey}.csv`,
-      generateSpreadsheetCsv(specification),
-    );
-
-    writeCypress(
-      outputDir,
-      `${specification.jiraKey}.cy.ts`,
-      generateCypress(specification),
-    );
-
-    writeSpecification(
-      outputDir,
-      `${specification.jiraKey}.specification.json`,
-      specification,
-    );
-
-    console.log(`✅ Generated artefacts for ${specification.jiraKey}`);
-
-    console.log(`📂 Output: ./${outputDir}`);
+    await generateArtifacts(specification);
   });
 
 program
@@ -135,47 +146,12 @@ program
       email,
       apiToken,
     });
+
     const issue = await client.getIssue(issueKey);
 
     const specification = parseJiraIssue(issue);
 
-    const outputDir = "output";
-
-    writeFeature(
-      outputDir,
-      `${specification.jiraKey}.feature`,
-      generateFeature(specification),
-    );
-
-    writeCsv(
-      outputDir,
-      `${specification.jiraKey}.csv`,
-      generateSpreadsheetCsv(specification),
-    );
-
-    writeCypress(
-      outputDir,
-      `${specification.jiraKey}.cy.ts`,
-      generateCypress(specification),
-    );
-
-    writeSpecification(
-      outputDir,
-      `${specification.jiraKey}.specification.json`,
-      specification,
-    );
-
-    const workbook = await generateWorkbook(specification);
-
-    await writeWorkbook(
-      outputDir,
-      `${specification.jiraKey}-manual-tests.xlsx`,
-      workbook,
-    );
-
-    console.log(`✅ Generated artefacts for ${specification.jiraKey}`);
-
-    console.log(`📂 Output: ./${outputDir}`);
+    await generateArtifacts(specification, true);
   });
 
 program.parse();

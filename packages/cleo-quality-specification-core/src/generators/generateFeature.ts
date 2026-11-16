@@ -1,4 +1,4 @@
-import type { TestSpecification } from "@qa-automation/test-specification";
+import type { TestSpecification } from "@cleo-quality-specification/test-specification";
 
 export function generateFeature(specification: TestSpecification): string {
   const lines: string[] = [];

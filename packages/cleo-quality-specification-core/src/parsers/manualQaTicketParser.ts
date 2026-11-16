@@ -1,13 +1,13 @@
 import type { ManualQaTicket } from "../models/ManualQaTicket.js";
-import type { TestSpecification } from "@qa-automation/test-specification";
-import { TEST_SPECIFICATION_VERSION } from "@qa-automation/test-specification";
+import type { TestSpecification } from "@cleo-quality-specification/test-specification";
+import { TEST_SPECIFICATION_VERSION } from "@cleo-quality-specification/test-specification";
 
 export function parseManualQaTicket(ticket: ManualQaTicket): TestSpecification {
   return {
     schemaVersion: TEST_SPECIFICATION_VERSION,
 
     metadata: {
-      generator: "qa-automation",
+      generator: "cleo-quality-specification",
       generatorVersion: "0.1.0",
       generatedAt: new Date().toISOString(),
       sourceType: "manual-ticket",

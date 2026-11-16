@@ -1,13 +1,13 @@
 import ExcelJS from "exceljs";
 
-import type { TestSpecification } from "@qa-automation/test-specification";
+import type { TestSpecification } from "@cleo-quality-specification/test-specification";
 
 export async function generateWorkbook(
   specification: TestSpecification,
 ): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
 
-  workbook.creator = "qa-automation";
+  workbook.creator = "cleo-quality-specification";
 
   workbook.created = new Date();
 
@@ -21,14 +21,12 @@ export async function generateWorkbook(
 
   listSheet.state = "veryHidden";
 
-  listSheet.getCell("A1").value = "Pass";
-
-  listSheet.getCell("A2").value = "Fail";
-
-  listSheet.getCell("A3").value = "N/A";
+  listSheet.getCell("A1").value = "Not Run";
+  listSheet.getCell("A2").value = "Pass";
+  listSheet.getCell("A3").value = "Fail";
+  listSheet.getCell("A4").value = "N/A";
 
   listSheet.getCell("B1").value = "Manual";
-
   listSheet.getCell("B2").value = "Cypress";
 
   /*
@@ -64,10 +62,26 @@ export async function generateWorkbook(
     hyperlink: `https://cleosystems.atlassian.net/browse/${specification.jiraKey}`,
   });
   addMetadataRow(sheet, "Domain", "");
-  addMetadataRow(sheet, "Tags", "");
-  addMetadataRow(sheet, "Product", "");
+  addMetadataRow(sheet, "Tags", "@manual");
+  addMetadataRow(sheet, "Product", "Elevate");
   addMetadataRow(sheet, "Version", "");
-  addMetadataRow(sheet, "Environment", "");
+  addMetadataRow(sheet, "Environment", "Staging");
+  addMetadataRow(
+    sheet,
+    "Scenario Count",
+    String(specification.scenarios.length),
+  );
+
+  addMetadataRow(
+    sheet,
+    "Assertion Count",
+    String(
+      specification.scenarios.reduce(
+        (total, scenario) => total + scenario.expectedResults.length,
+        0,
+      ),
+    ),
+  );
   addMetadataRow(
     sheet,
     "Generated At",
@@ -163,7 +177,7 @@ export async function generateWorkbook(
         firstRow ? whenCell : "",
         thenCell,
         "",
-        "N/A",
+        "Not Run",
         "Manual",
         "",
         "",
@@ -178,14 +192,6 @@ export async function generateWorkbook(
     addScenarioEndRow(sheet, "", "");
   });
 
-  /*
-   * ============================================================
-   * EXECUTION SUMMARY
-   * ============================================================
-   */
-
-  addExecutionSummarySheet(workbook, specification);
-
   return workbook;
 }
 
@@ -194,132 +200,6 @@ export async function generateWorkbook(
  * HELPERS
  * ============================================================
  */
-
-function addSummaryHeader(sheet: ExcelJS.Worksheet, title: string) {
-  const row = sheet.addRow([title]);
-
-  row.eachCell((cell) => {
-    cell.font = {
-      bold: true,
-      size: 10,
-      name: "Nunito Sans",
-    };
-
-    cell.fill = solid("FFD9E1F2");
-  });
-}
-
-function addExecutionSummarySheet(
-  workbook: ExcelJS.Workbook,
-  specification: TestSpecification,
-) {
-  const sheet = workbook.addWorksheet("Execution Summary");
-
-  sheet.columns = [{ width: 30 }, { width: 40 }];
-
-  sheet.addRow(["Execution Summary"]);
-
-  sheet.getRow(1).font = {
-    bold: true,
-    size: 16,
-    name: "Nunito Sans",
-  };
-
-  sheet.addRow([]);
-
-  addSummaryHeader(sheet, "Feature Information");
-
-  sheet.addRow(["Feature", specification.summary]);
-
-  sheet.addRow(["Feature ID", specification.jiraKey]);
-
-  sheet.addRow([
-    "Generated At",
-    new Date().toLocaleString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
-    }),
-  ]);
-
-  sheet.addRow([]);
-
-  addSummaryHeader(sheet, "Workbook Statistics");
-
-  sheet.addRow(["Scenario Count", specification.scenarios.length]);
-
-  sheet.addRow([
-    "Assertion Count",
-    specification.scenarios.reduce(
-      (total, scenario) => total + scenario.expectedResults.length,
-      0,
-    ),
-  ]);
-
-  sheet.addRow([]);
-
-  addSummaryHeader(sheet, "Execution Overview");
-
-  const featureSheetName = `'${specification.jiraKey}'`;
-
-  sheet.addRow([
-    "Pass",
-    {
-      formula: `COUNTIF(${featureSheetName}!G:G,"Pass")`,
-    },
-  ]);
-
-  sheet.addRow([
-    "Fail",
-    {
-      formula: `COUNTIF(${featureSheetName}!G:G,"Fail")`,
-    },
-  ]);
-
-  sheet.addRow([
-    "N/A",
-    {
-      formula: `COUNTIF(${featureSheetName}!G:G,"N/A")`,
-    },
-  ]);
-
-  const passPercentRow = sheet.addRow([
-    "Pass %",
-    {
-      formula:
-        `IFERROR(` +
-        `COUNTIF(${featureSheetName}!G:G,"Pass")/` +
-        `(` +
-        `COUNTIF(${featureSheetName}!G:G,"Pass")+` +
-        `COUNTIF(${featureSheetName}!G:G,"Fail")` +
-        `),` +
-        `0` +
-        `)`,
-    },
-  ]);
-
-  passPercentRow.getCell(2).numFmt = "0.00%";
-
-  sheet.addRow([]);
-
-  addSummaryHeader(sheet, "Automation Overview");
-
-  sheet.addRow([
-    "Manual",
-    {
-      formula: `COUNTIF(${featureSheetName}!H:H,"Manual")`,
-    },
-  ]);
-
-  sheet.addRow([
-    "Cypress",
-    {
-      formula: `COUNTIF(${featureSheetName}!H:H,"Cypress")`,
-    },
-  ]);
-}
 
 function styleHeaderRow(headerRow: ExcelJS.Row) {
   headerRow.eachCell((cell) => {
@@ -357,8 +237,8 @@ function addMetadataRow(
 ) {
   const row = sheet.addRow([label, value, ""]);
 
-  // Merge B + C + D
-  sheet.mergeCells(`B${row.number}:D${row.number}`);
+  // Merge B + C
+  sheet.mergeCells(`B${row.number}:C${row.number}`);
 
   const colA = row.getCell(1);
   colA.font = { name: "Nunito Sans", size: 10, bold: true };
@@ -405,7 +285,7 @@ function addScenarioEndRow(
 ) {
   const row = sheet.addRow([label, value, ""]);
 
-  [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((col) => {
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach((col) => {
     row.getCell(col).fill = solid("FFBFBFBF");
   });
 
@@ -465,10 +345,10 @@ function applyExecutionDropdowns(row: ExcelJS.Row) {
   resultCell.dataValidation = {
     type: "list",
     allowBlank: true,
-    formulae: ["_lists!$A$1:$A$3"],
+    formulae: ["_lists!$A$1:$A$4"],
   };
 
-  resultCell.fill = solid("FFFABF8F");
+  resultCell.fill = solid("FFD9D9D9"); // mid grey FFBFBFBF orange FFFABF8F
 
   resultCell.alignment = {
     horizontal: "center",
@@ -504,34 +384,6 @@ function applyExecutionDropdowns(row: ExcelJS.Row) {
     envCell.fill = solid("FFFABF8F");
   }
 }
-
-// function autoHeight(row: ExcelJS.Row) {
-//   let maxLines = 1;
-
-//   row.eachCell({ includeEmpty: true }, (cell) => {
-//     let text = "";
-
-//     if (typeof cell.value === "string") {
-//       text = cell.value;
-//     } else if (
-//       cell.value &&
-//       typeof cell.value === "object" &&
-//       "richText" in cell.value
-//     ) {
-//       text = cell.value.richText.map((r: any) => r.text).join("");
-//     }
-
-//     const width = row.worksheet.getColumn(cell.col).width ?? 20;
-
-//     const explicitLines = text.split("\n").length;
-
-//     const wrappedLines = Math.ceil(text.length / (width * 1.0));
-
-//     maxLines = Math.max(maxLines, explicitLines, wrappedLines);
-//   });
-
-//   row.height = Math.max(20, maxLines * 15);
-// }
 
 function autoHeight(row: ExcelJS.Row) {
   let maxLines = 1;
@@ -625,45 +477,3 @@ function buildRichSteps(
     richText,
   };
 }
-
-// function buildRichSteps(firstKeyword: string, steps: string[]): string {
-//   return steps
-//     .map((step, index) =>
-//       index === 0 ? `${firstKeyword} ${step}` : `    • AND ${step}`,
-//     )
-//     .join("\n");
-// }
-
-// function buildRichSteps(
-//   firstKeyword: string,
-//   steps: string[],
-// ): ExcelJS.CellRichTextValue {
-//   const richText: ExcelJS.RichText[] = [];
-
-//   steps.forEach((step, index) => {
-//     if (index > 0) {
-//       richText.push({
-//         text: "\n ",
-//       });
-
-//       richText.push({
-//         text: "• ",
-//       });
-//     }
-
-//     richText.push({
-//       text: index === 0 ? `${firstKeyword} ` : "AND ",
-//       font: {
-//         bold: true,
-//       },
-//     });
-
-//     richText.push({
-//       text: step,
-//     });
-//   });
-
-//   return {
-//     richText,
-//   };
-// }

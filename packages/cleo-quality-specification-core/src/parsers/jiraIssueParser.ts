@@ -1,23 +1,20 @@
 import {
   TEST_SPECIFICATION_VERSION,
   type TestSpecification,
-} from "@qa-automation/test-specification";
+} from "@cleo-quality-specification/test-specification";
 import type { JiraIssue } from "../jira/JiraIssue.js";
 import { adfToText } from "./adfToText.js";
 import { parseGherkinText } from "./gherkinParser.js";
-import fs from "fs";
 
 export function parseJiraIssue(issue: JiraIssue): TestSpecification {
   const text = adfToText(issue.description);
-  fs.writeFileSync(`output/${issue.key}.raw.txt`, text);
-
   const parsed = parseGherkinText(text);
 
   return {
     schemaVersion: TEST_SPECIFICATION_VERSION,
 
     metadata: {
-      generator: "qa-automation",
+      generator: "cleo-quality-specification",
       generatorVersion: "0.1.0",
       generatedAt: new Date().toISOString(),
       sourceType: "jira-story",
@@ -35,7 +32,7 @@ export function parseJiraIssue(issue: JiraIssue): TestSpecification {
     background: parsed.background,
 
     scenarios: parsed.scenarios.map((scenario, index) => ({
-      id: `SC-${String(index + 1).padStart(3, "0")}`,
+      id: `MA-${issue.key}-${String(index + 1).padStart(3, "0")}`,
 
       requirementId: issue.key,
 

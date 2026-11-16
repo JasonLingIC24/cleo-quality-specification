@@ -1,4 +1,4 @@
-import type { TestSpecification } from "@qa-automation/test-specification";
+import type { TestSpecification } from "@cleo-quality-specification/test-specification";
 
 export function generateSpreadsheet(specification: TestSpecification) {
   return specification.scenarios.map((scenario) => ({
