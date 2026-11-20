@@ -38,7 +38,7 @@ export async function generateWorkbook(
   const sheet = workbook.addWorksheet(specification.jiraKey);
 
   sheet.columns = [
-    { width: 15 }, // Test Case ID
+    { width: 20 }, // Test Case ID
     { width: 40 }, // Scenario
     { width: 45 }, // GIVEN
     { width: 45 }, // WHEN
@@ -165,13 +165,13 @@ export async function generateWorkbook(
             },
           },
           {
-            text: expectedResult,
+            text: expectedResult.text,
           },
         ],
       };
 
       const row = sheet.addRow([
-        firstRow ? scenario.id : "",
+        expectedResult.id,
         firstRow ? scenario.title : "",
         firstRow ? givenCell : "",
         firstRow ? whenCell : "",

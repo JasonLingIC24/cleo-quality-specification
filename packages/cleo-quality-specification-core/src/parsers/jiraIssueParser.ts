@@ -2,13 +2,17 @@ import {
   TEST_SPECIFICATION_VERSION,
   type TestSpecification,
 } from "@cleo-quality-specification/test-specification";
+
 import type { JiraIssue } from "../jira/JiraIssue.js";
+
 import { adfToText } from "./adfToText.js";
 import { parseGherkinText } from "./gherkinParser.js";
 
 export function parseJiraIssue(issue: JiraIssue): TestSpecification {
   const text = adfToText(issue.description);
   const parsed = parseGherkinText(text);
+
+  let assertionSequence = 1;
 
   return {
     schemaVersion: TEST_SPECIFICATION_VERSION,
@@ -32,7 +36,7 @@ export function parseJiraIssue(issue: JiraIssue): TestSpecification {
     background: parsed.background,
 
     scenarios: parsed.scenarios.map((scenario, index) => ({
-      id: `MA-${issue.key}-${String(index + 1).padStart(3, "0")}`,
+      id: `SCN-${String(index + 1).padStart(3, "0")}`,
 
       requirementId: issue.key,
 
@@ -42,7 +46,10 @@ export function parseJiraIssue(issue: JiraIssue): TestSpecification {
 
       actions: scenario.when,
 
-      expectedResults: scenario.then,
+      expectedResults: scenario.then.map((expectedResult) => ({
+        id: `MA-${issue.key}-${String(assertionSequence++).padStart(3, "0")}`,
+        text: expectedResult,
+      })),
 
       examples: scenario.examples,
 

@@ -46,7 +46,7 @@ export function generateFeature(specification: TestSpecification): string {
     });
 
     scenario.expectedResults.forEach((step, index) => {
-      lines.push(`    ${index === 0 ? "Then" : "And"} ${step}`);
+      lines.push(`    ${index === 0 ? "Then" : "And"} ${step.text}`);
     });
 
     if (scenario.examples && scenario.examples.length > 0) {

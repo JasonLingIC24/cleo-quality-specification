@@ -1,9 +1,13 @@
-import type { TestSpecification } from "@cleo-quality-specification/test-specification";
+import type {
+  ExpectedResult,
+  TestSpecification,
+} from "@cleo-quality-specification/test-specification";
 
 interface ScenarioDefinition {
+  id: string;
   title: string;
   requirementId?: string;
-  expectedResults: string[];
+  expectedResults: ExpectedResult[];
   examples?: string[];
 }
 
@@ -15,6 +19,10 @@ interface WhenGroup {
 interface GivenGroup {
   given: string;
   whenGroups: WhenGroup[];
+}
+
+function quote(text: string): string {
+  return `\`${text.replace(/`/g, "\\`")}\``;
 }
 
 export function generateCypress(specification: TestSpecification): string {
@@ -58,6 +66,7 @@ export function generateCypress(specification: TestSpecification): string {
     }
 
     whenGroup.scenarios.push({
+      id: scenario.id,
       title: scenario.title,
       requirementId: scenario.requirementId,
       expectedResults: scenario.expectedResults,
@@ -73,7 +82,7 @@ export function generateCypress(specification: TestSpecification): string {
 
   lines.push(
     "describe(",
-    `  "Feature: ${specification.summary}",`,
+    `  ${quote(`Feature: ${specification.summary}`)},`,
     "  () => {",
     "",
   );
@@ -87,7 +96,7 @@ export function generateCypress(specification: TestSpecification): string {
   for (const givenGroup of givenGroups.values()) {
     lines.push(
       "    describe(",
-      `      "GIVEN ${givenGroup.given}",`,
+      `      ${quote(`GIVEN ${givenGroup.given}`)},`,
       "      () => {",
       "",
       "        before(() => {",
@@ -107,7 +116,7 @@ export function generateCypress(specification: TestSpecification): string {
     for (const whenGroup of givenGroup.whenGroups) {
       lines.push(
         "        context(",
-        `          "WHEN ${whenGroup.when}",`,
+        `          ${quote(`WHEN ${whenGroup.when}`)},`,
         "          () => {",
         "",
         "            beforeEach(() => {",
@@ -156,7 +165,8 @@ export function generateCypress(specification: TestSpecification): string {
 
           lines.push(
             "            it(",
-            `              "${keyword} ${expectedResult}",`,
+            `              ${quote(`[${expectedResult.id}] ${keyword} ${expectedResult.text}`)},`,
+
             "              () => {",
             "",
             "                // Arrange",

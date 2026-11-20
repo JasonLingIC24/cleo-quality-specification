@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// import "dotenv/config";
-
+import "dotenv/config";
 import fs from "fs";
 import { Command } from "commander";
 import type { TestSpecification } from "@cleo-quality-specification/test-specification";

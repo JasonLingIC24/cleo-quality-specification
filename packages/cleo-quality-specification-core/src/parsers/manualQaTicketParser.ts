@@ -1,8 +1,12 @@
 import type { ManualQaTicket } from "../models/ManualQaTicket.js";
+
 import type { TestSpecification } from "@cleo-quality-specification/test-specification";
+
 import { TEST_SPECIFICATION_VERSION } from "@cleo-quality-specification/test-specification";
 
 export function parseManualQaTicket(ticket: ManualQaTicket): TestSpecification {
+  let assertionSequence = 1;
+
   return {
     schemaVersion: TEST_SPECIFICATION_VERSION,
 
@@ -28,8 +32,8 @@ export function parseManualQaTicket(ticket: ManualQaTicket): TestSpecification {
       }),
     ),
 
-    scenarios: (ticket.scenarios ?? []).map((scenario) => ({
-      id: scenario.id,
+    scenarios: (ticket.scenarios ?? []).map((scenario, index) => ({
+      id: `SCN-${String(index + 1).padStart(3, "0")}`,
 
       title: scenario.title,
 
@@ -37,7 +41,10 @@ export function parseManualQaTicket(ticket: ManualQaTicket): TestSpecification {
 
       actions: scenario.when ?? [],
 
-      expectedResults: scenario.then ?? [],
+      expectedResults: (scenario.then ?? []).map((expectedResult) => ({
+        id: `MA-${ticket.key}-${String(assertionSequence++).padStart(3, "0")}`,
+        text: expectedResult,
+      })),
 
       examples: [],
     })),

@@ -21,6 +21,8 @@ export * from "./generators/generateSpreadsheetCsv.js";
 export * from "./generators/generateCypress.js";
 export * from "./generators/generateWorkbook.js";
 
+export * from "./identifiers/buildAssertionId.js";
+
 export * from "./writers/writeFeature.js";
 export * from "./writers/writeCsv.js";
 export * from "./writers/writeCypress.js";
