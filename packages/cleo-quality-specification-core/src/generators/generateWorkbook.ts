@@ -57,6 +57,7 @@ export async function generateWorkbook(
    */
 
   addMetadataRow(sheet, "Feature", specification.summary);
+  addMetadataRow(sheet, "Workbook ID", specification.jiraKey.toLowerCase());
   addMetadataRow(sheet, "Feature ID", {
     text: specification.jiraKey,
     hyperlink: `https://cleosystems.atlassian.net/browse/${specification.jiraKey}`,
